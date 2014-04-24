@@ -21,11 +21,13 @@ namespace eval sipcall {
     proc load {} {
 	puts "SIP plugin loaded"
 	hook::add open_chat_post_hook [namespace current]::call_button 50
+	hook::add connected_hook [namespace current]::register_sip 50
     }
 
     proc unload {} {
 	puts "SIP plugin unloaded"
 	hook::remove open_chat_post_hook [namespace current]::call_button 50
+	hook::add disconnected_hook [namespace current]::unregister_sip 50
     }
 
     variable themes
@@ -52,7 +54,7 @@ namespace eval sipcall {
     
 }
 
-namespace eval xmpp::dns {
+namespace eval ::xmpp::dns {
     proc resolveSIPU {domain args} {
 	return [eval [list resolveSRV _sip._udp $domain] $args]
     }
@@ -86,6 +88,17 @@ proc sipcall::call_button {chatid type} {
 
 proc sipcall::show_info {chatid} {
     set jid [chat::get_jid $chatid]
-    set sipsrv [::xmpp::dns::resolveSIPU [xmpp::jid::node $jid]]
-    [tk_messageBox -message $sipsrv -type ok]
+    if {[catch { set sipsrv [::xmpp::dns::resolveSIPU [::xmpp::jid::server $jid]] }]} {
+	tk_messageBox -message "$jid does not support calls" -type ok
+    } else {
+	pjsip::dial sip:[xmpp::jid::removeResource $jid]
+    }
+}
+
+proc sipcall::register_sip {xlib} {
+    set jid [connection_jid $xlib]
+    set user [::xmpp::jid::node $jid]
+    set server [::xmpp::jid::server $jid]
+    set sipuri sip:[::xmpp::jid::removeResource $jid]
+    pjsip::register sip:$server $sipuri $server $user $::loginconf(password) stun.jabber.ru
 }
