@@ -1,0 +1,17 @@
+<icondef>
+  <meta>
+    <name>fontawesome</name>
+    <version>1.0</version>
+    <description>Theme from the fontawesome icons</description>
+    <creation>2014-04-23</creation>
+  </meta>
+  <icon>
+    <image xmlns='tkimage'>sipcall/call</image>
+    <object mime="image/gif">call.png</object>
+  </icon>
+  <icon>
+    <image xmlns='tkimage'>sipcall/hangup</image>
+    <object mime="image/gif">call.png</object>
+  </icon>
+</icondef>
+
